@@ -145,8 +145,7 @@
       LOGICAL,        INTENT(IN)    :: am_I_Root   ! Is this the root CPU?
       TYPE(OptInput), INTENT(IN)    :: Input_Opt   ! Input options 
       TYPE(MetState), INTENT(IN)    :: State_Met   ! Meteorology State obj
-!      TYPE(ChmState), INTENT(IN)    :: State_Chm   ! Chemistry State obj
-      TYPE(ChmState), INTENT(INOUT) :: State_Chm   ! Chemistry State obj ! dsj
+      TYPE(ChmState), INTENT(IN)    :: State_Chm   ! Chemistry State obj
 !
 ! !INPUT/OUTPUT PARAMETERS:
 !
@@ -438,8 +437,8 @@
      &                     O3_CTM,    O3_TOMS,   AOD999, OPTAER,
      &                     OPTDUST,   OPTD,      NLON,   NLAT,
      &                     YLAT,      DAY_OF_YR, MONTH,  DAY,
-     &                     am_I_Root, Input_Opt, State_Diag, State_Chm )
-!     &                     am_I_Root, Input_Opt, State_Diag  ) ! dsj
+     &                     am_I_Root, Input_Opt, State_Diag  )
+
 
 #elif defined( USE_APPROX_RANDOM_OVERLAP )
             !===========================================================
@@ -464,8 +463,7 @@
      &                     O3_CTM,    O3_TOMS,   AOD999, OPTAER,
      &                     OPTDUST,   OPTD,      NLON,   NLAT,
      &                     YLAT,      DAY_OF_YR, MONTH,  DAY,
-     &                     am_I_Root, Input_Opt, State_Diag, State_Chm )
-!     &                     am_I_Root, Input_Opt, State_Diag  ) ! dsj
+     &                     am_I_Root, Input_Opt, State_Diag  )
 
 #elif defined( USE_MAXIMUM_RANDOM_OVERLAP )
             !===========================================================
@@ -3086,8 +3084,7 @@ c---Zero / Set index arrays that map Jvalue(j) onto rates
      &                     ODCLOUD_COL_IN, ILON,      ILAT,
      &                     YLAT,           DAY_OF_YR, MONTH,
      &                     DAY,            am_I_Root, Input_Opt,
-     &                     State_Diag,     State_Chm )
-!     &                     State_Diag ) ! dsj
+     &                     State_Diag )
 !
 ! !USES:
 !
@@ -3097,7 +3094,6 @@ c---Zero / Set index arrays that map Jvalue(j) onto rates
 #endif
       USE Input_Opt_Mod,  ONLY : OptInput
       USE State_Diag_Mod, ONLY : DgnState
-      USE State_Chm_Mod,  ONLY : ChmState ! dsj
 !
 ! !INPUT PARAMETERS:
 !
@@ -3120,7 +3116,6 @@ c---Zero / Set index arrays that map Jvalue(j) onto rates
 ! !INPUT/OUTPUT PARAMETERS:                          
 !                                                    
       TYPE(DgnState), INTENT(INOUT)                   :: State_Diag
-      TYPE(ChmState), INTENT(INOUT)                   :: State_Chm ! dsj
 !
 ! !REMARKS:
 ! 
@@ -3713,12 +3708,6 @@ C-----------------------------------------------------------------------
 
       ENDIF
 #endif
-
-      ! For SOA photolysis (dsj)
-      ! Save NO2 photolysis rate
-      DO L = 1, LLPAR
-         State_Chm%J_NO2Sav(ILON,ILAT,L) = ZPJ(L,11,ILON,ILAT)
-      ENDDO
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !%%% COMMENT OUT FAST-J DIAGNOSTICS FOR NOW (bmy, 3/5/14)

@@ -113,9 +113,7 @@ MODULE HCOX_GFED_MOD
   ! N_SPEC  : Max. number of species
   !=================================================================
   INTEGER,           PARAMETER :: N_EMFAC = 6
-!  INTEGER,           PARAMETER :: N_SPEC  = 34
-  INTEGER,           PARAMETER :: N_SPEC  = 35 ! add SIVOC (dsj)
-
+  INTEGER,           PARAMETER :: N_SPEC  = 34
 !
 ! !PRIVATE TYPES:
 !
@@ -130,12 +128,6 @@ MODULE HCOX_GFED_MOD
   LOGICAL                       :: DoDay
   LOGICAL                       :: Do3Hr
   LOGICAL                       :: IsGFED4
-  ! variables for SIVOCs (dsj)
-  !REAL(sp)                      :: OC2SIVOC
-  !REAL(sp)                      :: OMOC = 1.4e+0_sp
-  !REAL(sp)                      :: NMVOC2SIVOC
-  !INTEGER                       :: SIVOC_INDEX
-  !LOGICAL                       :: LSIVOC
 
   !=================================================================
   ! SPECIES VARIABLES 
@@ -174,9 +166,6 @@ MODULE HCOX_GFED_MOD
   REAL(sp)                       :: BCPIfrac
   REAL(sp)                       :: POG1frac
   REAL(sp)                       :: SOAPfrac
-
-  ! Add scale factors for SIVOCs (dsj)
-  REAL(sp)                       :: SIVOC_EMFAC(N_EMFAC)
 
   !=================================================================
   ! DATA ARRAY POINTERS 
@@ -257,10 +246,6 @@ CONTAINS
     REAL(hp), TARGET    :: SpcArr(HcoState%NX,HcoState%NY)
     REAL(hp), TARGET    :: TypArr(HcoState%NX,HcoState%NY)
 
-    ! added by dsj
-    CHARACTER(LEN=255), POINTER :: GFED_SPEC_NAME (:) => NULL()
-    CHARACTER(LEN=255), TARGET  :: GFED4_SPEC_NAME(N_SPEC)
-
 !==============================================================================
 ! This code is required for the vertical distribution of biomass burning emiss.
 ! We will keep it here for a future implementation. (mps, 4/24/17)
@@ -321,76 +306,6 @@ CONTAINS
                              HRSCAL,    RC )
           IF ( RC /= HCO_SUCCESS ) RETURN
        ENDIF
-
-    !-----------------------------------------------------------------------
-    ! Calculations for SIVOC emissions (dsj)
-    !-----------------------------------------------------------------------
-    ! Now values are provided in header file
-!#include "hcox_gfed_include_gfed4.H"
-!
-!       ! Set working pointers
-!       IF ( IsGFED4 .AND. LSIVOC .AND. FIRST ) THEN
-!          GFED_EMFAC     => GFED4_EMFAC
-!          GFED_SPEC_NAME => GFED4_SPEC_NAME
-!
-!          ! Calculate emission factor of NMVOCs 
-!          ! SIVOC will be 20% of total NMVOCs
-!          SIVOC_EMFAC = 0.0_hp
-!          DO N = 1, N_SPEC
-!             IF ( GFED_SPEC_NAME(N) == 'ALK4' .or. &
-!                  GFED_SPEC_NAME(N) == 'ACET' .or. &
-!                  GFED_SPEC_NAME(N) == 'MEK'  .or. &
-!                  GFED_SPEC_NAME(N) == 'ALD2' .or. & 
-!                  GFED_SPEC_NAME(N) == 'PRPE' .or. &
-!                  GFED_SPEC_NAME(N) == 'C3H8' .or. & 
-!                  GFED_SPEC_NAME(N) == 'CH2O' .or. &
-!                  GFED_SPEC_NAME(N) == 'C2H6' .or. &
-!                  GFED_SPEC_NAME(N) == 'GLYX' .or. &
-!                  GFED_SPEC_NAME(N) == 'MGLY' .or. &
-!                  GFED_SPEC_NAME(N) == 'BENZ' .or. &
-!                  GFED_SPEC_NAME(N) == 'TOLU' .or. &
-!                  GFED_SPEC_NAME(N) == 'XYLE' .or. &
-!                  GFED_SPEC_NAME(N) == 'C2H4' .or. & 
-!                  GFED_SPEC_NAME(N) == 'GLYC' ) THEN
-!             
-!                  DO M = 1, N_EMFAC
-!                     SIVOC_EMFAC(M) = SIVOC_EMFAC(M) + GFED_EMFAC(N,M) * NMVOC2SIVOC
-!                  ENDDO
-!
-!             ELSEIF ( GFED_SPEC_NAME(N) == 'OC' ) THEN
-!
-!                DO M = 1, N_EMFAC
-!                   SIVOC_EMFAC(M) = SIVOC_EMFAC(M) + GFED_EMFAC(N,M) * OC2SIVOC * OMOC
-!                   GFED_EMFAC(N,M) = GFED_EMFAC(N,M) * ( 1 - OC2SIVOC )
-!                ENDDO
-!
-!             ELSEIF ( GFED_SPEC_NAME(N) == 'SIVOC' ) THEN
-!                
-!                SIVOC_INDEX = N
-!          
-!             ENDIF
-!    
-!          ENDDO
-!          GFED_EMFAC(SIVOC_INDEX,:) = SIVOC_EMFAC(:)
-!
-!          ! Verbose
-!          IF ( am_I_Root ) THEN
-!             MSG = 'GFED SIVOC emission factor'
-!             CALL HCO_MSG( MSG )
-!             WRITE(MSG,*) '   - Agricultural Waste   Emission Factor', SIVOC_EMFAC(1)
-!             CALL HCO_MSG( MSG )
-!             WRITE(MSG,*) '   - Deforestration       Emission Factor', SIVOC_EMFAC(2)
-!             CALL HCO_MSG( MSG )
-!             WRITE(MSG,*) '   - Extratropical Forest Emission Factor', SIVOC_EMFAC(3)
-!             CALL HCO_MSG( MSG )
-!             WRITE(MSG,*) '   - Peat                 Emission Factor', SIVOC_EMFAC(4)
-!             CALL HCO_MSG( MSG )
-!             WRITE(MSG,*) '   - Savanna              Emission Factor', SIVOC_EMFAC(5)
-!             CALL HCO_MSG( MSG )
-!             WRITE(MSG,*) '   - Woodland             Emission Factor', SIVOC_EMFAC(6)       
-!             CALL HCO_MSG( MSG )
-!          ENDIF
-!       ENDIF
 
        FIRST = .FALSE.
     !ENDIF
@@ -767,35 +682,6 @@ CONTAINS
     IF ( .NOT. FOUND ) THEN
        Do3Hr = .FALSE.
     ENDIF 
-
-    ! SIVOC emissions (dsj)
-    ! SIVOC?
-!    CALL GetExtOpt( HcoState%Config, ExtNr, 'SIVOC_Emis', &
-!                     OptValBool=LSIVOC, FOUND=FOUND, RC=RC )
-!    IF ( RC /= HCO_SUCCESS ) RETURN
-!    IF ( .NOT. FOUND ) THEN
-!       LSIVOC = .FALSE.
-!    ENDIF 
-!
-!    ! SIVOC scaled by OC emission (dsj)
-!    CALL GetExtOpt ( HcoState%Config, ExtNr, 'OC_to_SIVOC', &
-!                     OptValSp=ValSp, FOUND=FOUND, RC=RC )
-!    IF ( RC /= HCO_SUCCESS ) RETURN
-!    IF ( .NOT. FOUND ) THEN
-!       OC2SIVOC = 0.5
-!    ELSE
-!       OC2SIVOC = ValSp
-!    ENDIF
-!
-!    ! SIVOC scaled by NMVOC emission (dsj)
-!    CALL GetExtOpt ( HcoState%Config, ExtNr, 'NMVOC_to_SIVOC', &
-!                     OptValSp=ValSp, FOUND=FOUND, RC=RC )
-!    IF ( RC /= HCO_SUCCESS ) RETURN
-!    IF ( .NOT. FOUND ) THEN
-!       NMVOC2SIVOC = 0.5
-!    ELSE
-!       NMVOC2SIVOC = ValSp
-!    ENDIF
 
     !----------------------------------------------------------------------- 
     ! Initialize GFED scale factors

@@ -173,24 +173,6 @@
       INTEGER :: id_SOAIE, id_SOAME
       INTEGER :: id_INDIOL,id_LVOCOA,id_ISN1OA
 
-      ! Species ID flags for Hodzic VBS (dsj)
-      ! Gas phase
-      INTEGER :: id_VASOG1, id_VISOG1, id_VTSOG1, id_VSISOG1
-      INTEGER :: id_VASOG2, id_VISOG2, id_VTSOG2, id_VSISOG2
-      INTEGER :: id_VASOG3, id_VISOG3, id_VTSOG3, id_VSISOG3
-      INTEGER :: id_VASOG4, id_VISOG4, id_VTSOG4, id_VSISOG4
-      INTEGER :: id_VASOG5, id_VISOG5, id_VTSOG5, id_VSISOG5
-      INTEGER :: id_VASOG6, id_VISOG6, id_VTSOG6, id_VSISOG6
-      INTEGER :: id_SIVOC
-      ! Aerosol phase
-      INTEGER :: id_VASOA1, id_VISOA1, id_VTSOA1, id_VSISOA1
-      INTEGER :: id_VASOA2, id_VISOA2, id_VTSOA2, id_VSISOA2
-      INTEGER :: id_VASOA3, id_VISOA3, id_VTSOA3, id_VSISOA3
-      INTEGER :: id_VASOA4, id_VISOA4, id_VTSOA4, id_VSISOA4
-      INTEGER :: id_VASOA5, id_VISOA5, id_VTSOA5, id_VSISOA5
-      INTEGER :: id_VASOA6, id_VISOA6, id_VTSOA6, id_VSISOA6
-
-
 #if defined( NC_DIAG )
       ! Diagnostic flags
       LOGICAL :: Archive_AerAqVol 
@@ -358,7 +340,6 @@
       LOGICAL             :: IS_SOAGX, IS_SOAMG
       LOGICAL             :: Is_SimpleSOA
       LOGICAL             :: Is_ComplexSOA
-      LOGICAL             :: LVBS ! Hodzic VBS (dsj)
 
       ! Pointers      
       REAL(fp), POINTER   :: Spc(:,:,:,:)
@@ -390,7 +371,6 @@
       LSULF   = Input_Opt%LSULF
       LPRT    = Input_Opt%LPRT
       LUCX    = Input_Opt%LUCX
-      LVBS    = Input_Opt%LVBS ! Hodzic VBS (dsj)
 
       ! Do we have to print debug output?
       prtDebug   = ( LPRT .and. am_I_Root )
@@ -885,37 +865,6 @@
      &                       + Spc(I,J,L,id_OPOA2) )
      &                       * OCFOPOA(I,J) / AIRVOL(I,J,L) 
             ENDIF
-
-         ELSEIF ( LVBS ) THEN ! Hodzic VBS (dsj)
-            
-            TSOA(I,J,L) = ( Spc(I,J,L,id_VTSOA1)
-     &                    + Spc(I,J,L,id_VTSOA2)
-     &                    + Spc(I,J,L,id_VTSOA3)
-     &                    + Spc(I,J,L,id_VTSOA4)
-     &                    + Spc(I,J,L,id_VTSOA5)
-     &                    + Spc(I,J,L,id_VTSOA6) )
-
-            ISOA(I,J,L) = ( Spc(I,J,L,id_VISOA1)
-     &                    + Spc(I,J,L,id_VISOA2)
-     &                    + Spc(I,J,L,id_VISOA3)
-     &                    + Spc(I,J,L,id_VISOA4)
-     &                    + Spc(I,J,L,id_VISOA5)
-     &                    + Spc(I,J,L,id_VISOA6) )
-
-            ASOA(I,J,L) = ( Spc(I,J,L,id_VASOA1)
-     &                    + Spc(I,J,L,id_VASOA2)
-     &                    + Spc(I,J,L,id_VASOA3)
-     &                    + Spc(I,J,L,id_VASOA4)
-     &                    + Spc(I,J,L,id_VASOA5)
-     &                    + Spc(I,J,L,id_VASOA6) )
-
-            OPOA(I,J,L) = ( Spc(I,J,L,id_VSISOA1)
-     &                    + Spc(I,J,L,id_VSISOA2)
-     &                    + Spc(I,J,L,id_VSISOA3)
-     &                    + Spc(I,J,L,id_VSISOA4)
-     &                    + Spc(I,J,L,id_VSISOA5)
-     &                    + Spc(I,J,L,id_VSISOA6) )
-
          ENDIF
 
          !-------------------------------------------------------
@@ -1026,36 +975,6 @@
      &                          + Spc(I,J,L,id_OCPI)
      &                          * OCFOPOA(I,J) / AIRVOL(I,J,L) 
             ENDIF
-
-         ELSEIF ( LVBS ) THEN ! Hodzic VBS (dsj)
-
-            OCPISOA(I,J,L) = ( Spc(I,J,L,id_OCPI)
-     &                       * OCFOPOA(I,J)
-     &                       + Spc(I,J,L,id_VTSOA1)
-     &                       + Spc(I,J,L,id_VTSOA2)
-     &                       + Spc(I,J,L,id_VTSOA3)
-     &                       + Spc(I,J,L,id_VTSOA4)
-     &                       + Spc(I,J,L,id_VTSOA5)
-     &                       + Spc(I,J,L,id_VTSOA6)
-     &                       + Spc(I,J,L,id_VISOA1)
-     &                       + Spc(I,J,L,id_VISOA2)
-     &                       + Spc(I,J,L,id_VISOA3)
-     &                       + Spc(I,J,L,id_VISOA4)
-     &                       + Spc(I,J,L,id_VISOA5)
-     &                       + Spc(I,J,L,id_VISOA6) 
-     &                       + Spc(I,J,L,id_VASOA1)
-     &                       + Spc(I,J,L,id_VASOA2)
-     &                       + Spc(I,J,L,id_VASOA3)
-     &                       + Spc(I,J,L,id_VASOA4)
-     &                       + Spc(I,J,L,id_VASOA5)
-     &                       + Spc(I,J,L,id_VASOA6)
-     &                       + Spc(I,J,L,id_VSISOA1)
-     &                       + Spc(I,J,L,id_VSISOA2)
-     &                       + Spc(I,J,L,id_VSISOA3)
-     &                       + Spc(I,J,L,id_VSISOA4)
-     &                       + Spc(I,J,L,id_VSISOA5)
-     &                       + Spc(I,J,L,id_VSISOA6) )
-     &                       / AIRVOL(I,J,L) 
 
          ENDIF
 
@@ -2662,55 +2581,6 @@
       id_INDIOL = Ind_( 'INDIOL' )
       id_LVOCOA = Ind_( 'LVOCOA' )
       id_ISN1OA = Ind_( 'ISN1OA' )
-      ! For Hodzic VBS (dsj)
-      id_VISOG1   = IND_('VISOG1'  )
-      id_VISOG2   = IND_('VISOG2'  )
-      id_VISOG3   = IND_('VISOG3'  )
-      id_VISOG4   = IND_('VISOG4'  )
-      id_VISOG5   = IND_('VISOG5'  )
-      id_VISOG6   = IND_('VISOG6'  )
-      id_VISOA1   = IND_('VISOA1'  )
-      id_VISOA2   = IND_('VISOA2'  )
-      id_VISOA3   = IND_('VISOA3'  )
-      id_VISOA4   = IND_('VISOA4'  )
-      id_VISOA5   = IND_('VISOA5'  )
-      id_VISOA6   = IND_('VISOA6'  )
-      id_VTSOG1   = IND_('VTSOG1'  )
-      id_VTSOG2   = IND_('VTSOG2'  )
-      id_VTSOG3   = IND_('VTSOG3'  )
-      id_VTSOG4   = IND_('VTSOG4'  )
-      id_VTSOG5   = IND_('VTSOG5'  )
-      id_VTSOG6   = IND_('VTSOG6'  )
-      id_VTSOA1   = IND_('VTSOA1'  )
-      id_VTSOA2   = IND_('VTSOA2'  )
-      id_VTSOA3   = IND_('VTSOA3'  )
-      id_VTSOA4   = IND_('VTSOA4'  )
-      id_VTSOA5   = IND_('VTSOA5'  )
-      id_VTSOA6   = IND_('VTSOA6'  )
-      id_VASOG1   = IND_('VASOG1'  )
-      id_VASOG2   = IND_('VASOG2'  )
-      id_VASOG3   = IND_('VASOG3'  )
-      id_VASOG4   = IND_('VASOG4'  )
-      id_VASOG5   = IND_('VASOG5'  )
-      id_VASOG6   = IND_('VASOG6'  )
-      id_VASOA1   = IND_('VASOA1'  )
-      id_VASOA2   = IND_('VASOA2'  )
-      id_VASOA3   = IND_('VASOA3'  )
-      id_VASOA4   = IND_('VASOA4'  )
-      id_VASOA5   = IND_('VASOA5'  )
-      id_VASOA6   = IND_('VASOA6'  )
-      id_VSISOG1  = IND_('VSISOG1'  )
-      id_VSISOG2  = IND_('VSISOG2'  )
-      id_VSISOG3  = IND_('VSISOG3'  )
-      id_VSISOG4  = IND_('VSISOG4'  )
-      id_VSISOG5  = IND_('VSISOG5'  )
-      id_VSISOG6  = IND_('VSISOG6'  )
-      id_VSISOA1  = IND_('VSISOA1'  )
-      id_VSISOA2  = IND_('VSISOA2'  )
-      id_VSISOA3  = IND_('VSISOA3'  )
-      id_VSISOA4  = IND_('VSISOA4'  )
-      id_VSISOA5  = IND_('VSISOA5'  )
-      id_VSISOA6  = IND_('VSISOA6'  )
 
 #if defined( NC_DIAG )
       ! Are certain diagnostics turned on?

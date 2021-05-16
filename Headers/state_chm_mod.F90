@@ -155,6 +155,11 @@ MODULE State_Chm_Mod
                                                         ! [unitless]
 
      !----------------------------------------------------------------------
+     ! For Hodzic SOA scheme (dsj)
+     !----------------------------------------------------------------------
+     REAL(fp),          POINTER :: J_NO2Sav(:,:,:  )    ! NO2 photolysis rate
+
+     !----------------------------------------------------------------------
      ! Registry of variables contained within State_Chm
      !----------------------------------------------------------------------
      CHARACTER(LEN=4)           :: State     = 'CHEM'   ! Name of this state
@@ -412,6 +417,9 @@ CONTAINS
     State_Chm%HSO3_AQ     => NULL()
     State_Chm%SO3_AQ      => NULL()
     State_Chm%fupdateHOBr => NULL()
+
+    ! For Hodzic VBS scheme (dsj)
+    State_Chm%J_NO2Sav    => NULL()
 
     ! Local variables
     Ptr2data                => NULL()
@@ -1090,6 +1098,19 @@ CONTAINS
                                State_Chm, RC                               )
        CALL GC_CheckVar( 'State_Chm%fupdateHOBr', 1, RC )    
        IF ( RC /= GC_SUCCESS ) RETURN
+
+       !--------------------------------------------------------------------
+       ! J_NO2Sav (dsj)
+       !--------------------------------------------------------------------
+       chmID  = 'J_NO2Sav'
+       ALLOCATE( State_Chm%J_NO2Sav( IM, JM, LM ), STAT=RC )
+       CALL GC_CheckVar( 'State_Chm%J_NO2Sav', 0, RC )
+       IF ( RC /= GC_SUCCESS ) RETURN
+       State_Chm%J_NO2Sav = 0.0_fp
+       CALL Register_ChmField( am_I_Root, chmID, State_Chm%J_NO2Sav,     &
+                               State_Chm, RC                                )
+       IF ( RC /= GC_SUCCESS ) RETURN
+
     ENDIF
 
     !=======================================================================
@@ -1560,6 +1581,13 @@ CONTAINS
        DEALLOCATE( State_Chm%fupdateHOBr, STAT=RC )
        CALL GC_CheckVar( 'State_Chm%fupdateHOBr', 3, RC )
        RETURN
+    ENDIF
+
+    ! dsj
+    IF ( ASSOCIATED( State_Chm%J_NO2Sav ) ) THEN
+       DEALLOCATE( State_Chm%J_NO2Sav, STAT=RC )
+       CALL GC_CheckVar( 'State_Chm%J_NO2Sav', 2, RC )
+       IF ( RC /= GC_SUCCESS ) RETURN
     ENDIF
 
     !=======================================================================
@@ -2105,6 +2133,11 @@ CONTAINS
        CASE ( 'FUPDATEHOBR' )
           IF ( isDesc  ) Desc  = 'Correction factor for HOBr removal by SO2'
           IF ( isUnits ) Units = '1'
+          IF ( isRank  ) Rank  =  3
+
+       CASE( 'J_NO2SAV' ) ! dsj
+          IF ( isDesc  ) Desc  = 'NO2 photolysis rate'
+          IF ( isUnits ) Units = 's-1'
           IF ( isRank  ) Rank  =  3
 
        CASE DEFAULT

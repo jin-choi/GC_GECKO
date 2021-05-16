@@ -354,16 +354,4 @@ GFED4_EMFAC(34,3)=9.95E-04_hp
 GFED4_EMFAC(34,4)=9.95E-04_hp
 GFED4_EMFAC(34,5)=9.95E-04_hp
 GFED4_EMFAC(34,6)=9.95E-04_hp
-
-! Add SIVOC emission factor (dsj)
-! NMVOC emission factor is from Akagi et al. 2011
-! SIVOC EF = NMVOC EF * 0.2 + POA EF * 0.5 * 1.4 (OM/OC)
-GFED4_SPEC_NAME(35)="SIVOC"
-GFED4_EMFAC(35,1)=2.47E-02_hp*0.2_hp+2.62E-03_hp*0.5_hp*1.4_hp
-GFED4_EMFAC(35,2)=5.87E-02_hp*0.2_hp+9.60E-03_hp*0.5_hp*1.4_hp
-GFED4_EMFAC(35,3)=2.37E-02_hp*0.2_hp+9.60E-03_hp*0.5_hp*1.4_hp
-GFED4_EMFAC(35,4)=5.19E-02_hp*0.2_hp+4.71E-03_hp*0.5_hp*1.4_hp
-GFED4_EMFAC(35,5)=9.73E-02_hp*0.2_hp+6.02E-03_hp*0.5_hp*1.4_hp
-GFED4_EMFAC(35,6)=5.14E-02_hp*0.2_hp+2.30E-03_hp*0.5_hp*1.4_hp
-
 !EOC

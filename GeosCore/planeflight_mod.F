@@ -1667,7 +1667,7 @@
          ELSE
             ! Write half hour only if we are on last time step, otherwise
             ! exit the subroutine
-            IF (MOD(GET_ELAPSED_SEC(), (GET_TS_DIAG()*1440)) == 0) THEN 
+            IF (MOD(GET_ELAPSED_SEC(), 86400) == 0) THEN 
                PTAUS = PTAUE - ( GET_TS_DIAG() / (2.0 * 3600d0) )
             ELSE
                EXIT
