@@ -190,21 +190,6 @@
       INTEGER :: id_VASOA5, id_VISOA5, id_VTSOA5, id_VSISOA5
       INTEGER :: id_VASOA6, id_VISOA6, id_VTSOA6, id_VSISOA6
 
-      ! Species ID flags for GECKO DNN (jin)
-      ! Gas phase
-      INTEGER :: id_NASOG1, id_NTSOG1, id_NSISOG1
-      INTEGER :: id_NASOG2, id_NTSOG2, id_NSISOG2
-      INTEGER :: id_NASOG3, id_NTSOG3, id_NSISOG3
-      INTEGER :: id_NASOG4, id_NTSOG4, id_NSISOG4
-      INTEGER :: id_NASOG5, id_NTSOG5, id_NSISOG5
-      INTEGER :: id_NASOG6, id_NTSOG6, id_NSISOG6
-      ! Aerosol phase
-      INTEGER :: id_NASOA1, id_NTSOA1, id_NSISOA1
-      INTEGER :: id_NASOA2, id_NTSOA2, id_NSISOA2
-      INTEGER :: id_NASOA3, id_NTSOA3, id_NSISOA3
-      INTEGER :: id_NASOA4, id_NTSOA4, id_NSISOA4
-      INTEGER :: id_NASOA5, id_NTSOA5, id_NSISOA5
-      INTEGER :: id_NASOA6, id_NTSOA6, id_NSISOA6
 
 #if defined( NC_DIAG )
       ! Diagnostic flags
@@ -374,7 +359,6 @@
       LOGICAL             :: Is_SimpleSOA
       LOGICAL             :: Is_ComplexSOA
       LOGICAL             :: LVBS ! Hodzic VBS (dsj)
-      LOGICAL             :: LDNN ! (jin)
 
       ! Pointers      
       REAL(fp), POINTER   :: Spc(:,:,:,:)
@@ -407,7 +391,6 @@
       LPRT    = Input_Opt%LPRT
       LUCX    = Input_Opt%LUCX
       LVBS    = Input_Opt%LVBS ! Hodzic VBS (dsj)
-      LDNN    = Input_Opt%LDNN ! (jin)
 
       ! Do we have to print debug output?
       prtDebug   = ( LPRT .and. am_I_Root )
@@ -933,16 +916,6 @@
      &                    + Spc(I,J,L,id_VSISOA5)
      &                    + Spc(I,J,L,id_VSISOA6) )
 
-            IF ( LDNN ) THEN ! (jin)
-
-            TSOA(I,J,L) = TSOA(I,J,L)
-     &                  + ( Spc(I,J,L,id_NTSOA1)
-     &                    + Spc(I,J,L,id_NTSOA2)
-     &                    + Spc(I,J,L,id_NTSOA3)
-     &                    + Spc(I,J,L,id_NTSOA4) )
-
-            ENDIF
-
          ENDIF
 
          !-------------------------------------------------------
@@ -1083,18 +1056,6 @@
      &                       + Spc(I,J,L,id_VSISOA5)
      &                       + Spc(I,J,L,id_VSISOA6) )
      &                       / AIRVOL(I,J,L) 
-
-            IF ( LDNN ) THEN ! (jin)
-
-               OCPISOA(I,J,L) = OCPISOA(I,J,L)
-     &                        * OCFOPOA(I,J)
-     &                        + ( Spc(I,J,L,id_NTSOA1)
-     &                          + Spc(I,J,L,id_NTSOA2)
-     &                          + Spc(I,J,L,id_NTSOA3)
-     &                          + Spc(I,J,L,id_NTSOA4) )
-     &                          / AIRVOL(I,J,L)
-
-            ENDIF
 
          ENDIF
 
@@ -2750,43 +2711,6 @@
       id_VSISOA4  = IND_('VSISOA4'  )
       id_VSISOA5  = IND_('VSISOA5'  )
       id_VSISOA6  = IND_('VSISOA6'  )
-      ! For GECKO DNN (jin)
-      id_NTSOG1   = IND_('NTSOG1'  )
-      id_NTSOG2   = IND_('NTSOG2'  )
-      id_NTSOG3   = IND_('NTSOG3'  )
-      id_NTSOG4   = IND_('NTSOG4'  )
-      id_NTSOG5   = IND_('NTSOG5'  )
-      id_NTSOG6   = IND_('NTSOG6'  )
-      id_NTSOA1   = IND_('NTSOA1'  )
-      id_NTSOA2   = IND_('NTSOA2'  )
-      id_NTSOA3   = IND_('NTSOA3'  )
-      id_NTSOA4   = IND_('NTSOA4'  )
-      id_NTSOA5   = IND_('NTSOA5'  )
-      id_NTSOA6   = IND_('NTSOA6'  )
-      id_NASOG1   = IND_('NASOG1'  )
-      id_NASOG2   = IND_('NASOG2'  )
-      id_NASOG3   = IND_('NASOG3'  )
-      id_NASOG4   = IND_('NASOG4'  )
-      id_NASOG5   = IND_('NASOG5'  )
-      id_NASOG6   = IND_('NASOG6'  )
-      id_NASOA1   = IND_('NASOA1'  )
-      id_NASOA2   = IND_('NASOA2'  )
-      id_NASOA3   = IND_('NASOA3'  )
-      id_NASOA4   = IND_('NASOA4'  )
-      id_NASOA5   = IND_('NASOA5'  )
-      id_NASOA6   = IND_('NASOA6'  )
-      id_NSISOG1   = IND_('NSISOG1'  )
-      id_NSISOG2   = IND_('NSISOG2'  )
-      id_NSISOG3   = IND_('NSISOG3'  )
-      id_NSISOG4   = IND_('NSISOG4'  )
-      id_NSISOG5   = IND_('NSISOG5'  )
-      id_NSISOG6   = IND_('NSISOG6'  )
-      id_NSISOA1   = IND_('NSISOA1'  )
-      id_NSISOA2   = IND_('NSISOA2'  )
-      id_NSISOA3   = IND_('NSISOA3'  )
-      id_NSISOA4   = IND_('NSISOA4'  )
-      id_NSISOA5   = IND_('NSISOA5'  )
-      id_NSISOA6   = IND_('NSISOA6'  )
 
 #if defined( NC_DIAG )
       ! Are certain diagnostics turned on?

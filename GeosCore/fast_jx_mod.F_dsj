@@ -30,12 +30,11 @@
       PUBLIC  :: INIT_FJX
       PUBLIC  :: FAST_JX
       PUBLIC  :: PHOTRATE_ADJ
-      PUBLIC  :: SOLAR_JX ! (jin)
 
 !
 ! !PRIVATE MEMBER FUNCTIONS:
 !
-      !PRIVATE :: SOLAR_JX ! (jin)
+      PRIVATE :: SOLAR_JX
       PRIVATE :: OPMIE
       PRIVATE :: MIESCT 
       PRIVATE :: LEGND0

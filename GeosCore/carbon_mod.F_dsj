@@ -427,43 +427,6 @@
       INTEGER :: id_VASOA5, id_VISOA5, id_VTSOA5, id_VSISOA5
       INTEGER :: id_VASOA6, id_VISOA6, id_VTSOA6, id_VSISOA6
 
-
-      !=================================================================
-      ! initial SOA array settings for GECKO DNN (jin)
-      !=================================================================
-
-      INTEGER, PARAMETER :: MHC_DNN = 1  ! max # HCs
-      INTEGER, PARAMETER :: MSV_DNN = 1  ! max # lumped semivols
-                                         !       (NT) !, NA, NSI)
-      INTEGER, PARAMETER :: MBIN_DNN = 1 ! max # saturation vapor pressure 
-                                         !       (SVP) bins
-
-      ! Array for mapping parent HC to semivolatiles
-      INTEGER            :: IDSV_DNN(MHC_DNN)
-
-      ! Identify parent hydrocarbon by numbers
-      INTEGER, PARAMETER :: PHC_MTPA_DNN = 1   ! bicyclic monoterpenes
-      !INTEGER, PARAMETER :: PHC_TOLU_DNN = 2  ! toluene
-      !INTEGER, PARAMETER :: PHC_IVOC_DNN = 3  ! IVOC/SVOC
-
-      ! Species ID flags
-      ! Gas phase
-      INTEGER :: id_NASOG1, id_NTSOG1, id_NSISOG1
-      INTEGER :: id_NASOG2, id_NTSOG2, id_NSISOG2
-      INTEGER :: id_NASOG3, id_NTSOG3, id_NSISOG3
-      INTEGER :: id_NASOG4, id_NTSOG4, id_NSISOG4
-      INTEGER :: id_NASOG5, id_NTSOG5, id_NSISOG5
-      INTEGER :: id_NASOG6, id_NTSOG6, id_NSISOG6
-      ! Aerosol phase
-      INTEGER :: id_NASOA1, id_NTSOA1, id_NSISOA1
-      INTEGER :: id_NASOA2, id_NTSOA2, id_NSISOA2
-      INTEGER :: id_NASOA3, id_NTSOA3, id_NSISOA3
-      INTEGER :: id_NASOA4, id_NTSOA4, id_NSISOA4
-      INTEGER :: id_NASOA5, id_NTSOA5, id_NSISOA5
-      INTEGER :: id_NASOA6, id_NTSOA6, id_NSISOA6
-      ! for NO2
-      INTEGER :: id_NO2
-
       !=================================================================
       ! MODULE ROUTINES -- follow below the "CONTAINS" statement 
       !=================================================================
@@ -589,9 +552,6 @@
       ! Add for the Hodzic VBS (dsj)
       LOGICAL            :: LVBS
 
-      ! Add for GECKO DNN (jin)
-      LOGICAL            :: LDNN
-
       ! Pointers
       REAL(fp), POINTER  :: Spc(:,:,:,:)
 
@@ -616,8 +576,6 @@
       IT_IS_AN_AEROSOL_SIM = Input_Opt%ITS_AN_AEROSOL_SIM
       ! Add for the Hodzic VBS (dsj)
       LVBS                 = Input_Opt%LVBS
-      ! Add for GECKO DNN (jin)
-      LDNN                 = Input_Opt%LDNN
       
 
       DTCHEM               = GET_TS_CHEM()
@@ -1477,7 +1435,6 @@
       USE State_Chm_Mod,      ONLY : ChmState
       USE State_Diag_Mod,     ONLY : DgnState
       USE TIME_MOD,           ONLY : GET_TS_CHEM ! dsj
-      USE MODULE_GECKO_ML,    ONLY : INIT_GECKO_ML
 !
 ! !INPUT PARAMETERS:
 !
@@ -1705,19 +1662,6 @@
       ! index
       INTEGER         :: IVB, ISV
 
-      ! ================================================================
-      ! Variables GECKO DNN (jin)
-      ! ================================================================
-      ! Local logical flags for GECKO DNN
-      LOGICAL           :: LDNN
-      ! Arrays for GECKO DNN
-      REAL(fp)          :: GM0_DNN(MSV_DNN,MBIN_DNN)
-      REAL(fp)          :: AM0_DNN(MSV_DNN,MBIN_DNN)
-      !REAL(fp)          :: DTCHEM
-      !REAL(fp)          :: JNO2, KHETOA, KHETO3, O3CONC, OATOTM, FROA 
-      ! index
-      !INTEGER         :: IVB, ISV
-
       !=================================================================
       ! SOA_CHEMISTRY begins here!
       !=================================================================
@@ -1725,7 +1669,6 @@
       ! Save fields from Input_Opt to local variables
       LPRT         = Input_Opt%LPRT
       LVBS         = Input_Opt%LVBS ! add VBS flag (dsj)
-      LDNN         = Input_Opt%LDNN    ! add DNN flag (jin)
       ! Chemistry timestep [s] (dsj)
       DTCHEM  = GET_TS_CHEM()
 
@@ -1751,9 +1694,6 @@
 
          ! initialize alphas, Koms and rxn rate constants
          CALL SOA_PARA_INIT( Input_Opt )
-
-         ! initialize neural network
-         CALL init_gecko_ml( Input_Opt%DNN_DIR )
 
          ! Diagnostic/debug info (hotp 5/22/10)
          IF ( prtDebug ) THEN
@@ -1793,15 +1733,6 @@
                DO JSV = 1, MSV
                   print*, (JSV),NPROD(JSV),NNOX(JSV)
                ENDDO
-            ENDIF
-            IF ( LDNN ) THEN ! DNN (jin)
-               WRITE(*,*) 'HC and SV IDs'
-               print*, 'Monoterpenes (alpha-pinene)'
-               print*, 'MTPA ', PHC_MTPA_DNN, IDSV_DNN(PHC_MTPA_DNN)
-               !print*, 'Arom'
-               !print*, 'TOLU ', PHC_TOLU_DNN, IDSV_DNN(PHC_TOLU_DNN)
-               !print*, 'Semivolatile POA (dodecane)'
-               !print*, 'IVOC ', PHC_IVOC_DNN, IDSV_DNN(PHC_IVOC_DNN)
             ENDIF
          ENDIF
 
@@ -1869,7 +1800,6 @@
          JSVOPOA = IDSV(PARENTOPOA)
       ENDIF
 
-
       !%%% NOTE: NEED TO REPLACE LLCHEM WITH LLPAR FOR GCHP
       !%%% DO THIS LATER SINCE WE ARE NOT USING THE SOA MECHANISM YET
 
@@ -1878,7 +1808,6 @@
       ! add JSV to private (hotp 5/13/10)
       ! remove NOX (hotp 5/22/10)
       ! add VBS arrays (dsj) to OMP
-      ! add DNN arrays (jin) to OMP
 !$OMP PARALLEL DO
 !$OMP+DEFAULT( SHARED )
 !$OMP+PRIVATE( I,        J,        L,     JHC,   IPR,   GM0,  AM0  )
@@ -1888,7 +1817,6 @@
 !$OMP+PRIVATE( KRO2NO,   KRO2HO2,  JSV                             )
 !$OMP+PRIVATE( KOM_VBS, ORG_AER_VBS, ORG_GAS_VBS, GM0_VBS, AM0_VBS )
 !$OMP+PRIVATE( IVB, ISV, KHETOA,  KHETO3, O3CONC, OATOTM, FROA     )
-!$OMP+PRIVATE( GM0_DNN, AM0_DNN                                    )
       DO L = 1, LLCHEM
       DO J = 1, JJPAR
       DO I = 1, IIPAR
@@ -1918,22 +1846,15 @@
      &                     Input_Opt, KOM_VBS )
          ELSE
             CALL SOA_PARA( RTEMP, KO3, KOH, KNO3, KOM,
-     &                     I,     J,   L,   KRO2NO, KRO2HO2, State_Met )
+     &                     I,     J,   L,   KRO2NO, KRO2HO2, State_Met )            
          ENDIF
 
 
          ! Partition mass of gas & aerosol species 
          ! according to 5 VOC classes & 3 oxidants
          IF ( LVBS ) THEN ! Add Hodzic VBS case (dsj)
-            ! Add DNN case (jin)
-            IF ( LDNN ) THEN 
-            CALL SOA_PARTITION( I, J, L, GM0, AM0, State_Chm, 
-     &                          Input_Opt, GM0_VBS, AM0_VBS,
-     &                          GM0_DNN, AM0_DNN            )
-            ELSE
             CALL SOA_PARTITION( I, J, L, GM0, AM0, State_Chm, 
      &                          Input_Opt, GM0_VBS, AM0_VBS )
-            ENDIF
          ELSE
             CALL SOA_PARTITION( I, J, L, GM0, AM0, State_Chm )
          ENDIF
@@ -1962,6 +1883,7 @@
      &                      Input_Opt,  State_Met, State_Chm,
      &                      State_Diag, RC                    )
          ENDIF
+
 
          IF ( LVBS ) THEN
             !========================================================
@@ -1998,8 +1920,6 @@
      &            *1.e+3_fp*6.023e+23_fp/250.e+0_fp
      &            +(Spc(I,J,L,id_OCPI)+Spc(I,J,L,id_OCPO))
      &            *1.e+3_fp*6.023e+23_fp/12.e+0_fp
-     &            +(Spc(I,J,L,id_NTSOA1))
-     &             *1.e+3_fp*6.023e+23_fp/150.e+0_fp
 
             ! FRACTION LOST
             FROA=0.0e+0_fp
@@ -2360,21 +2280,11 @@
             GM0(IPR,JSV) = 0e+0_fp
          ENDIF
 
-         IF ( LDNN ) THEN
-            CALL GECKO_DNN_TRANSFER(I, J, L, GM0_DNN, AM0_DNN,
-     &                              State_Chm, State_Met, Input_Opt)
-         ENDIF
-
          ! Lump SOA
          IF ( LVBS ) THEN ! Add Hodzic VBS case (dsj)
-            IF ( LDNN ) THEN ! Add GECKO_DNN case (jin)
-            CALL SOA_LUMP( I, J, L, GM0, AM0, State_Chm, State_Diag,
-     &                     Input_Opt, GM0_VBS, AM0_VBS,
-     &                     GM0_DNN, AM0_DNN )
-            ELSE
+
             CALL SOA_LUMP( I, J, L, GM0, AM0, State_Chm, State_Diag,
      &                     Input_Opt, GM0_VBS, AM0_VBS )
-            ENDIF
          ELSE
             CALL SOA_LUMP( I, J, L, GM0, AM0, State_Chm, State_Diag )
          ENDIF
@@ -2539,227 +2449,6 @@
       Spc => NULL()
 
       END SUBROUTINE SOA_CHEMISTRY
-!EOC
-!------------------------------------------------------------------------------
-!                  GEOS-Chem Global Chemical Transport Model                  !
-!------------------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: GECKO_DNN_TRANSFER
-!
-! !DESCRIPTION: Subroutine GECKO\_DNN\_TRANSFER (jin 02/28/21)
-!\\
-!\\
-! !INTERFACE:
-!
-      SUBROUTINE GECKO_DNN_TRANSFER( I, J, L, GM0_DNN, AM0_DNN,
-     &                               State_Chm, State_Met, Input_Opt)
-!
-! !USES:
-!
-      USE PhysConstants,      ONLY : AIRMW
-      USE State_Chm_Mod,      ONLY : ChmState
-      USE State_Met_Mod,      ONLY : MetState
-      USE Input_Opt_Mod,      ONLY : OptInput
-      USE TIME_MOD,           ONLY : GET_DAY_OF_YEAR
-      USE FAST_JX_MOD,        ONLY : SOLAR_JX
-      USE MODULE_GECKO_ML,    ONLY : RUN_GECKO_NEURAL_NET_1D
-      USE TIME_MOD,           ONLY : GET_TS_CHEM
-!
-! !INPUT PARAMETERS:
-!
-      ! Arguments
-      INTEGER,        INTENT(IN)  :: I              ! Longitude index 
-      INTEGER,        INTENT(IN)  :: J              ! Latitude index
-      INTEGER,        INTENT(IN)  :: L              ! Altitude index
-
-      ! Gas and Aerosol phase of SOA in ug/m3
-      REAL(fp),  INTENT(INOUT)  :: GM0_DNN(MSV_DNN,MBIN_DNN)
-      REAL(fp),  INTENT(INOUT)  :: AM0_DNN(MSV_DNN,MBIN_DNN)
-
-      TYPE(ChmState), INTENT(IN)  :: State_Chm      ! Chemistry State object
-      TYPE(MetState), INTENT(IN)  :: State_Met      ! Meteorology State object
-      TYPE(OptInput), INTENT(IN)  :: Input_Opt      ! Input Options object
-
-      REAL(fp), POINTER  :: Spc(:,:,:,:)
-!
-! !REMARKS:
-!  References:
-!  ============================================================================
-!  (1 ) 
-!  28 Feb 2021 - Jin Choi
-!EOP
-!------------------------------------------------------------------------------
-!BOC
-!
-! !DEFINED PARAMETERS:
-!
-      ! Parameters for gecko subroutine 
-      REAL(fp) :: PRECURSOR
-      REAL(fp) :: GAS_DNN(1,MBIN_DNN)
-      REAL(fp) :: AEROSOL_DNN(1,MBIN_DNN)
-      REAL(fp) :: TEMP, SZA
-      REAL(fp) :: O3PPBV, NOXPPBV, OHMC6, OA
-     
-      INTEGER  :: DAY_OF_YR
-      REAL(fp) :: CSZA, SOLFX
-      REAL(fp) :: FAC, FAC_VMR
-      REAL(fp) :: O3VMR, NOVMR, NO2VMR, NOXVMR, OHMC
-
-      INTEGER :: MVB
-      INTEGER :: ISV, IVB
-      INTEGER :: NDNNSTEP, ISTEP
-
-      REAL(fp) :: PRECURSOR0
-      REAL(fp) :: GAS_DNN0(1,MBIN_DNN)
-      REAL(fp) :: AEROSOL_DNN0(1,MBIN_DNN)
-      !=================================================================
-      ! GECKO_DNN_TRANSFER begins here!
-      !=================================================================
-
-      ! Point to chemical species array [kg]
-      Spc => State_Chm%Species
-
-      ! Number of DNN steps in a chemistry step
-      NDNNSTEP = GET_TS_CHEM()/300 ! seconds
-
-      ! Temperature in [K]
-      TEMP  = State_Met%T(I,J,L)
-
-      DAY_OF_YR = GET_DAY_OF_YEAR()
-      CSZA = State_Met%SUNCOSmid(I,J)
-
-      IF ( CSZA .LE. 0 ) THEN
-      SZA = 0.0_fp
-      ELSE
-      CALL SOLAR_JX(DAY_OF_YR,CSZA,SZA,SOLFX)
-      ENDIF  
-
-      ! *************************************** 
-      ! Conversion factor from kg to v/v
-      ! AD(I,J,L) = grid box dry air mass [kg]
-      ! AIRMW     = dry air molecular wt [g/mol]
-      FAC_VMR = AIRMW / State_Met%AD(I,J,L)
-
-      ! FAC_VMR is later divided by MW_G of each species
-      ! MW_G(N)   = species molecular wt [g/mol]
-
-         O3VMR =  Spc(I,J,L,id_O3) * FAC_VMR /
-     &            State_Chm%SpcData(id_O3)%Info%emMW_g
-
-         NOVMR =  Spc(I,J,L,id_NO) * FAC_VMR /
-     &            State_Chm%SpcData(id_NO)%Info%emMW_g
-
-         NO2VMR =  Spc(I,J,L,id_NO2) * FAC_VMR /
-     &            State_Chm%SpcData(id_NO2)%Info%emMW_g
-
-         NOXVMR = NOVMR+NO2VMR
-
-     !! print*, 'emMW_g', State_Chm%SpcData(id_O3)%Info%emMW_g,
-     !!&        State_Chm%SpcData(id_NO)%Info%emMW_g, 
-     !!&        State_Chm%SpcData(id_NO2)%Info%emMW_g
-
-         ! Convert v/v to ppbv
-         O3PPBV = O3VMR * 10.0e+8_fp
-         NOXPPBV = NOXVMR * 10.0e+8_fp
-
-      ! *************************************** 
-         OHMC = GET_OH( I, J, L, Input_Opt, State_Chm,
-     &                  State_Met )
-
-         OHMC6 = OHMC / 10.0e+6_fp
-
-      ! *************************************** 
-      ! Conversion factor from kg to ug/m3
-      FAC    = 1.e+9_fp / State_Met%AIRVOL(I,J,L)
-
-         ! TOTAL SOA+POA in kg
-         OA= (Spc(I,J,L,id_VASOA1)+Spc(I,J,L,id_VASOA2)
-     &       +Spc(I,J,L,id_VASOA3)+Spc(I,J,L,id_VASOA4)
-     &       +Spc(I,J,L,id_VASOA5)+Spc(I,J,L,id_VASOA6)
-     &       +Spc(I,J,L,id_VISOA1)+Spc(I,J,L,id_VISOA2)
-     &       +Spc(I,J,L,id_VISOA3)+Spc(I,J,L,id_VISOA4)
-     &       +Spc(I,J,L,id_VISOA5)+Spc(I,J,L,id_VISOA6)
-     &       +Spc(I,J,L,id_VTSOA1)+Spc(I,J,L,id_VTSOA2)
-     &       +Spc(I,J,L,id_VTSOA3)+Spc(I,J,L,id_VTSOA4)
-     &       +Spc(I,J,L,id_VTSOA5)+Spc(I,J,L,id_VTSOA6))
-     &      +(Spc(I,J,L,id_VSISOA1)+Spc(I,J,L,id_VSISOA2)
-     &       +Spc(I,J,L,id_VSISOA3)+Spc(I,J,L,id_VSISOA4)
-     &       +Spc(I,J,L,id_VSISOA5)+Spc(I,J,L,id_VSISOA6))
-     &      +(Spc(I,J,L,id_OCPI)+Spc(I,J,L,id_OCPO))
-     &      +(Spc(I,J,L,id_NTSOA1))
-!!!     &      +(Spc(I,J,L,id_NTSOA1)+Spc(I,J,L,id_NTSOA2)
-!!!     &       +Spc(I,J,L,id_NTSOA3)+Spc(I,J,L,id_NTSOA4))
-
-         ! Convert kg to ug/m3 
-         OA = OA * FAC
-
-      ! *************************************** 
-         ! Initialize PRECURSOR, GAS, AEROSOL
-         PRECURSOR = 0.0_fp
-         GAS_DNN = 0.0_fp
-         AEROSOL_DNN = 0.0_fp
-         
-         DO ISV = 1, MSV_DNN
-
-            MVB = IDSV_DNN(MSV_DNN)
-
-            ! MTPA PRECURSOR from [kg] to [ug/m3]
-            IF (ISV .EQ. 1) PRECURSOR = Spc(I,J,L,id_MTPA) * FAC
-
-            DO IVB = 1, MVB
-               GAS_DNN(1,IVB) = GM0_DNN(ISV,IVB) * FAC
-               AEROSOL_DNN(1,IVB) = AM0_DNN(ISV,IVB) * FAC
-            ENDDO
-
-            DO ISTEP = 1, NDNNSTEP
-
-            !print *, "GECKO-A DNN 1D MODEL IS CALLED ", ISTEP, NDNNSTEP 
-
-            PRECURSOR0 = PRECURSOR
-            GAS_DNN0(1,1:MVB) = GAS_DNN(1,1:MVB)
-            AEROSOL_DNN0(1,1:MVB) = AEROSOL_DNN(1,1:MVB)
-
-            CALL run_gecko_neural_net_1d(PRECURSOR,      ! ug/m3
-     &                                   GAS_DNN(1,1:MVB),     ! ug/m3
-     &                                   AEROSOL_DNN(1,1:MVB), ! ug/m3
-     &                                   TEMP,      ! K
-     &                                   SZA,       ! degree
-     &                                   OA,        ! ug/m3
-     &                                   O3PPBV,    ! ppb
-     &                                   NOXPPBV,   ! ppb
-     &                                   OHMC6,     ! 10^6 molec/cm3
-     &                                   MVB)       ! integer
-
-!!!            IF ((I .EQ. 36) .AND. (J .EQ. 63) .AND. (L .EQ. 1)) THEN 
-!!!                print *, '***GECKO DEBUG PRINTOUT (jin): ', ISTEP,
-!!!     &                   PRECURSOR0, 
-!!!     &                   GAS_DNN0(1,1:MVB),
-!!!     &                   AEROSOL_DNN0(1,1:MVB), 
-!!!     &                   TEMP, SZA,
-!!!     &                   OA, O3PPBV, NOXPPBV, OHMC6,
-!!!     &                   'OutPut ',
-!!!     &                   PRECURSOR, 
-!!!     &                   GAS_DNN(1,1:MVB),
-!!!     &                   AEROSOL_DNN(1,1:MVB) 
-!!!            ENDIF
-
-            ENDDO
-
-            ! Replace the array
-            GM0_DNN(ISV,1:MVB) = GAS_DNN(1,1:MVB) / FAC
-            AM0_DNN(ISV,1:MVB) = AEROSOL_DNN(1,1:MVB) / FAC
-
-         ENDDO
-
-
-      Spc => NULL()
-
-      END SUBROUTINE GECKO_DNN_TRANSFER
-!EOC
-
-
-
 !EOC
 !------------------------------------------------------------------------------
 !                  GEOS-Chem Global Chemical Transport Model                  !
@@ -4328,13 +4017,9 @@
       INTEGER  :: IVB, ISV
       ! Logical parameters for the Hodzic VBS (dsj)
       LOGICAL  :: LVBS
-      ! Logical parameters for the GECKO DNN (jin)
-      LOGICAL  :: LDNN
 
       ! Copy fields for use below (dsj)
       LVBS      = Input_Opt%LVBS
-      ! Copy fields for use below (jin)
-      LDNN      = Input_Opt%LDNN
 
       !=================================================================
       ! CHEM_NVOC begins here!
@@ -4385,17 +4070,6 @@
       !=================================================================
       ! Change in NVOC concentration due to photooxidation [kg]
       !=================================================================
-
-      ! Add GECKO DNN case (jin)
-      IF ( LDNN ) THEN
-         ! MTPA, TOLU, SIVOC are calculated separately
-         ! For MTPA: 
-         NMVOC(1) = 0.0e+0_fp
-         ! For TOLU: changes are in the function GET_DARO
-         !           not updated yet
-         ! For SIVOC:
-         !NMVOC(PHC_IVOC_VBS) = 0.0e+0_fp
-      ENDIF
 
       ! Add Hodzic VBS case (dsj)
       IF ( LVBS ) THEN
@@ -4920,12 +4594,8 @@
 !
 !      SUBROUTINE SOA_PARTITION( I, J, L, GM0, AM0, State_Chm )
 !     Add optional argument for the Hodzic VBS (dsj)
-!      SUBROUTINE SOA_PARTITION( I, J, L, GM0, AM0, State_Chm,
-!     &                          Input_Opt, GM0_VBS, AM0_VBS )
-!     Add optional argument for GECKO DNN (jin)
       SUBROUTINE SOA_PARTITION( I, J, L, GM0, AM0, State_Chm,
-     &                          Input_Opt, GM0_VBS, AM0_VBS,
-     &                          GM0_DNN, AM0_DNN )
+     &                          Input_Opt, GM0_VBS, AM0_VBS )
 !
 ! !USES:
 !
@@ -4955,10 +4625,6 @@
       TYPE(OptInput), INTENT(IN), OPTIONAL :: Input_Opt   ! Input Options object
       REAL(fp),  INTENT(OUT), OPTIONAL  :: GM0_VBS(MSV_VBS,MBIN_VBS)
       REAL(fp),  INTENT(OUT), OPTIONAL  :: AM0_VBS(MSV_VBS,MBIN_VBS)
-
-      ! optional arrays for GECKO DNN (jin)
-      REAL(fp),  INTENT(OUT), OPTIONAL  :: GM0_DNN(MSV_DNN,MBIN_DNN)
-      REAL(fp),  INTENT(OUT), OPTIONAL  :: AM0_DNN(MSV_DNN,MBIN_DNN)
 !
 ! !REMARKS:
 !  NOTE: GPROD and APROD are mass ratios of individual oxidation 
@@ -4987,15 +4653,8 @@
 
       ! Logical parameter for the VBS (dsj)
       LOGICAL            :: LVBS
-
-      ! Logical parameter for GECKO DNN (jin)
-      LOGICAL            :: LDNN
-
       ! Copy field for use below (dsj)
       IF ( PRESENT(Input_Opt) ) LVBS = Input_Opt%LVBS
-
-      ! Copy field for use below (jin)
-      IF ( PRESENT(Input_Opt) ) LDNN = Input_Opt%LDNN
 
       !=================================================================
       ! SOA_PARTITION begins here!
@@ -5007,65 +4666,6 @@
       ! Initialize everything to zero (hotp 5/17/10)
       GM0 = 0e+0_fp
       AM0 = 0e+0_fp
-
-
-      IF ( LDNN ) THEN ! Add DNN case (jin)
-
-         !---------------------------------------
-         ! SEMIVOLATILE 1: MTPA SOA
-         !---------------------------------------
-         ! gas phase
-         GM0_DNN(1,1)=Spc(I,J,L,id_NTSOG1) ! C* =    0.01
-         !GM0_DNN(1,2)=Spc(I,J,L,id_NTSOG2) ! C* =    0.1
-         !GM0_DNN(1,3)=Spc(I,J,L,id_NTSOG3) ! C* =    1
-         !GM0_DNN(1,4)=Spc(I,J,L,id_NTSOG4) ! C* =   10
-         !GM0_DNN(1,5)=Spc(I,J,L,id_NTSOG5) ! C* =  100
-         !GM0_DNN(1,6)=Spc(I,J,L,id_NTSOG6) ! C* = 1000
-         ! aerosol phase
-         AM0_DNN(1,1)=Spc(I,J,L,id_NTSOA1)
-         !AM0_DNN(1,2)=Spc(I,J,L,id_NTSOA2)
-         !AM0_DNN(1,3)=Spc(I,J,L,id_NTSOA3)
-         !AM0_DNN(1,4)=Spc(I,J,L,id_NTSOA4)
-         !AM0_DNN(1,5)=Spc(I,J,L,id_NTSOA5)
-         !AM0_DNN(1,6)=Spc(I,J,L,id_NTSOA6)
-
-         !---------------------------------------
-         ! SEMIVOLATILE 2: Toluene SOA
-         !---------------------------------------
-         ! gas phase
-         !GM0_DNN(2,1)=Spc(I,J,L,id_NASOG1) ! C* =    0.01
-         !GM0_DNN(2,2)=Spc(I,J,L,id_NASOG2) ! C* =    0.1
-         !GM0_DNN(2,3)=Spc(I,J,L,id_NASOG3) ! C* =    1
-         !GM0_DNN(2,4)=Spc(I,J,L,id_NASOG4) ! C* =   10
-         !GM0_DNN(2,5)=Spc(I,J,L,id_NASOG5) ! C* =  100
-         !GM0_DNN(2,6)=Spc(I,J,L,id_NASOG6) ! C* = 1000
-         ! aerosol phase
-         !AM0_DNN(2,1)=Spc(I,J,L,id_NASOA1)
-         !AM0_DNN(2,2)=Spc(I,J,L,id_NASOA2)
-         !AM0_DNN(2,3)=Spc(I,J,L,id_NASOA3)
-         !AM0_DNN(2,4)=Spc(I,J,L,id_NASOA4)
-         !AM0_DNN(2,5)=Spc(I,J,L,id_NASOA5)
-         !AM0_DNN(2,6)=Spc(I,J,L,id_NASOA6)
-
-         !---------------------------------------
-         ! SEMIVOLATILE 3: S/IVOC SOA
-         !---------------------------------------
-         ! gas phase
-         !GM0_DNN(3,1)=Spc(I,J,L,id_NSISOG1) ! C* =    0.01
-         !GM0_DNN(3,2)=Spc(I,J,L,id_NSISOG2) ! C* =    0.1
-         !GM0_DNN(3,3)=Spc(I,J,L,id_NSISOG3) ! C* =    1
-         !GM0_DNN(3,4)=Spc(I,J,L,id_NSISOG4) ! C* =   10
-         !GM0_DNN(3,5)=Spc(I,J,L,id_NSISOG5) ! C* =  100
-         !GM0_DNN(3,6)=Spc(I,J,L,id_NSISOG6) ! C* = 1000
-         ! aerosol phase
-         !AM0_DNN(3,1)=Spc(I,J,L,id_NSISOA1)
-         !AM0_DNN(3,2)=Spc(I,J,L,id_NSISOA2)
-         !AM0_DNN(3,3)=Spc(I,J,L,id_NSISOA3)
-         !AM0_DNN(3,4)=Spc(I,J,L,id_NSISOA4)
-         !AM0_DNN(3,5)=Spc(I,J,L,id_NSISOA5)
-         !AM0_DNN(3,6)=Spc(I,J,L,id_NSISOA6)
-
-      ENDIF
 
       IF ( LVBS ) THEN ! Add VBS case (dsj)
          !---------------------------------------
@@ -5240,13 +4840,9 @@
 ! !INTERFACE:
 !
       ! Add optional flag for the Hodzic VBS (dsj)
-      ! Add optional flag for GECKO DNN (jin)
       !SUBROUTINE SOA_LUMP( I, J, L, GM0, AM0, State_Chm, State_Diag )
-!!      SUBROUTINE SOA_LUMP( I, J, L, GM0, AM0, State_Chm, State_Diag,
-!!     &                     Input_Opt, GM0_VBS, AM0_VBS )
       SUBROUTINE SOA_LUMP( I, J, L, GM0, AM0, State_Chm, State_Diag,
-     &                     Input_Opt, GM0_VBS, AM0_VBS,
-     &                     GM0_DNN, AM0_DNN )
+     &                     Input_Opt, GM0_VBS, AM0_VBS )
 !
 ! !USES:
 !
@@ -5278,9 +4874,6 @@
       TYPE(OptInput), INTENT(IN), OPTIONAL :: Input_Opt   ! Input Options object
       REAL(fp), INTENT(INOUT), OPTIONAL :: GM0_VBS(MSV_VBS,MBIN_VBS)
       REAL(fp), INTENT(INOUT), OPTIONAL :: AM0_VBS(MSV_VBS,MBIN_VBS)
-      ! Add optional array for GECKO DNN (jin)
-      REAL(fp), INTENT(INOUT), OPTIONAL :: GM0_DNN(MSV_DNN,MBIN_DNN)
-      REAL(fp), INTENT(INOUT), OPTIONAL :: AM0_DNN(MSV_DNN,MBIN_DNN)
 ! 
 ! !REVISION HISTORY:
 !  (1 ) Now references STT from "tracer_mod.f" (bmy, 7/20/04)
@@ -5313,17 +4906,11 @@
 
       ! Logical parameter for the Hodzic VBS (dsj)
       LOGICAL            :: LVBS
-      ! Logical parameter for GECKO_DNN (jin)
-      LOGICAL            :: LDNN
       ! Loop parameters for the VBS
       INTEGER            :: ISV, IVB
-      ! Loop parameter for DNN
-      INTEGER            :: ISV_DNN
 
       ! Copy field for use below (dsj)
       IF ( PRESENT(Input_Opt) ) LVBS = Input_Opt%LVBS
-      ! Copy field for use below (jin)
-      IF ( PRESENT(Input_Opt) ) LDNN = Input_Opt%LDNN
 
       !=================================================================
       ! SOA_LUMP begins here!
@@ -5529,57 +5116,6 @@
          Spc(I,J,L,id_VSISOA4) = MAX( AM0_VBS(ISV,4), 1d-32 )
          Spc(I,J,L,id_VSISOA5) = MAX( AM0_VBS(ISV,5), 1d-32 )
          Spc(I,J,L,id_VSISOA6) = MAX( AM0_VBS(ISV,6), 1d-32 )
-
-         ! Add flag for GECKO DNN (jin)
-         IF ( LDNN ) THEN
-         !=================================================================
-         ! Group 1: MTPA SOA
-         !=================================================================
-         ! Initialize
-         GASMASS = 0e+0_fp
-         AERMASS = 0e+0_fp
-         ISV = 5
-         ISV_DNN = 1
-
-         !! Save diagnostic info
-         !DO IVB = 1, MBIN_DNN
-         !   GASMASS = GASMASS + GM0_DNN(ISV_DNN,IVB)
-         !   AERMASS = AERMASS + AM0_DNN(ISV_DNN,IVB)
-         !ENDDO
-
-         !-----------------------------
-         ! SOA net production [kg]
-         !-----------------------------
-#if defined( BPCH_DIAG )
-         IF ( ND07 > 0 .and. L <= LD07 ) THEN
-            AD07_HC(I,J,L,ISV) = AD07_HC(I,J,L,ISV)
-     &                       + ( AM0_DNN(1,1) -
-     &                           Spc(I,J,L,id_NTSOA1) )
-            AD07_HC(I,J,L,ISV+1) = AD07_HC(I,J,L,ISV+1)
-     &                         + ( GM0_DNN(1,1) -
-     &                              Spc(I,J,L,id_NTSOG1) )
-         ENDIF
-#endif
-
-         !-----------------------------
-         ! Update tracers [kg]
-         !-----------------------------
-         ! gas phase
-         Spc(I,J,L,id_NTSOG1) = MAX( GM0_DNN(ISV_DNN,1), 1d-32 )
-         !Spc(I,J,L,id_NTSOG2) = MAX( GM0_DNN(ISV_DNN,2), 1d-32 )
-         !Spc(I,J,L,id_NTSOG3) = MAX( GM0_DNN(ISV_DNN,3), 1d-32 )
-         !Spc(I,J,L,id_NTSOG4) = MAX( GM0_DNN(ISV_DNN,4), 1d-32 )
-         !Spc(I,J,L,id_NTSOG5) = MAX( GM0_DNN(ISV_DNN,5), 1d-32 )
-         !Spc(I,J,L,id_NTSOG6) = MAX( GM0_DNN(ISV_DNN,6), 1d-32 )
-
-         ! aerosol phase
-         Spc(I,J,L,id_NTSOA1) = MAX( AM0_DNN(ISV_DNN,1), 1d-32 )
-         !Spc(I,J,L,id_NTSOA2) = MAX( AM0_DNN(ISV_DNN,2), 1d-32 )
-         !Spc(I,J,L,id_NTSOA3) = MAX( AM0_DNN(ISV_DNN,3), 1d-32 )
-         !Spc(I,J,L,id_NTSOA4) = MAX( AM0_DNN(ISV_DNN,4), 1d-32 )
-         !Spc(I,J,L,id_NTSOA5) = MAX( AM0_DNN(ISV_DNN,5), 1d-32 )
-         !Spc(I,J,L,id_NTSOA6) = MAX( AM0_DNN(ISV,6), 1d-32 )
-         ENDIF
 
       ELSE
 
@@ -9414,18 +8950,12 @@ ccc
       ! Logical flag for Hodzic VBS (dsj)
       INTEGER  :: LVBS
 
-      ! Logical flag for GECKO DNN (jin)
-      INTEGER  :: LDNN
-
       !=================================================================
       ! INIT_CARBON begins here!
       !=================================================================
 
       ! Add for the Hodzic VBS (dsj)
       LVBS                 = Input_Opt%LVBS
-
-      ! Add for GECKO DNN (jin)
-      LDNN                 = Input_Opt%LDNN
 
       ! Assume success
       RC = GC_SUCCESS
@@ -9465,7 +8995,6 @@ ccc
       id_NK1      = IND_('NK1'     )
       id_NH4      = IND_('NH4'     )
       id_NO       = IND_('NO'      )
-      id_NO2      = IND_('NO2'     ) ! jin
       id_NO3      = IND_('NO3'     )
       id_OCIL1    = IND_('OCIL1'   )
       id_OCOB1    = IND_('OCOB1'   )
@@ -9553,44 +9082,7 @@ ccc
       id_VSISOA5  = IND_('VSISOA5'  )
       id_VSISOA6  = IND_('VSISOA6'  )
       id_SIVOC    = IND_('SIVOC'  )
-      ! For GECKO DNN (jin)
-      id_NTSOG1   = IND_('NTSOG1'  )
-      id_NTSOG2   = IND_('NTSOG2'  )
-      id_NTSOG3   = IND_('NTSOG3'  )
-      id_NTSOG4   = IND_('NTSOG4'  )
-      id_NTSOG5   = IND_('NTSOG5'  )
-      id_NTSOG6   = IND_('NTSOG6'  )
-      id_NTSOA1   = IND_('NTSOA1'  )
-      id_NTSOA2   = IND_('NTSOA2'  )
-      id_NTSOA3   = IND_('NTSOA3'  )
-      id_NTSOA4   = IND_('NTSOA4'  )
-      id_NTSOA5   = IND_('NTSOA5'  )
-      id_NTSOA6   = IND_('NTSOA6'  )
-      id_NASOG1   = IND_('NASOG1'  )
-      id_NASOG2   = IND_('NASOG2'  )
-      id_NASOG3   = IND_('NASOG3'  )
-      id_NASOG4   = IND_('NASOG4'  )
-      id_NASOG5   = IND_('NASOG5'  )
-      id_NASOG6   = IND_('NASOG6'  )
-      id_NASOA1   = IND_('NASOA1'  )
-      id_NASOA2   = IND_('NASOA2'  )
-      id_NASOA3   = IND_('NASOA3'  )
-      id_NASOA4   = IND_('NASOA4'  )
-      id_NASOA5   = IND_('NASOA5'  )
-      id_NASOA6   = IND_('NASOA6'  )
-      id_NSISOG1   = IND_('NSISOG1'  )
-      id_NSISOG2   = IND_('NSISOG2'  )
-      id_NSISOG3   = IND_('NSISOG3'  )
-      id_NSISOG4   = IND_('NSISOG4'  )
-      id_NSISOG5   = IND_('NSISOG5'  )
-      id_NSISOG6   = IND_('NSISOG6'  )
-      id_NSISOA1   = IND_('NSISOA1'  )
-      id_NSISOA2   = IND_('NSISOA2'  )
-      id_NSISOA3   = IND_('NSISOA3'  )
-      id_NSISOA4   = IND_('NSISOA4'  )
-      id_NSISOA5   = IND_('NSISOA5'  )
-      id_NSISOA6   = IND_('NSISOA6'  )
-
+      
       ! Add Hodzic VBS case (dsj)
       IF ( LVBS ) THEN
          IDSV_VBS(PHC_MTPA_VBS) = 2
@@ -9644,12 +9136,6 @@ ccc
          NNOX(IDSV(PARENTPOA )) = 1 ! just OH
          NNOX(IDSV(PARENTOPOA)) = 1 ! just OH
 
-      ENDIF
-
-      ! Add GECKO DNN (jin)
-      IF ( LDNN ) THEN
-         !IDSV_DNN(PHC_MTPA_DNN) = 4
-         IDSV_DNN(PHC_MTPA_DNN) = 1
       ENDIF
 
       ! Check to make sure NNOx doesn't exceed max

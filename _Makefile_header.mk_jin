@@ -990,7 +990,7 @@ NCL                  := $(NC_LINK_CMD)
 ###                                                                         ###
 ###############################################################################
 
-###MKL_LINK_CMD       := ${MKLROOT}/lib/libfftw2xf_double_intel.a -L${MKLROOT}/lib -mkl
+MKL_LINK_CMD       :=${MKLROOT}/lib/intel64/libmkl_blas95_ilp64.a ${MKLROOT}/lib/intel64/libmkl_lapack95_ilp64.a -L${MKLROOT}/lib/intel64 -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -ldl
 
 #----------------------------
 # For GEOS-Chem 
@@ -1013,7 +1013,7 @@ endif
 LINK                 :=$(LINK) -lIsoropia -lHistory -lHCOI -lHCOX -lHCO 
 LINK                 :=$(LINK) -lGeosUtil -lKpp -lHeaders -lNcUtils 
 LINK                 :=$(LINK) $(NC_LINK_CMD)
-###LINK                 :=$(LINK) $(MKL_LINK_CMD)
+LINK                 :=$(LINK) $(MKL_LINK_CMD)
 
 #----------------------------
 # For the HEMCO standalone

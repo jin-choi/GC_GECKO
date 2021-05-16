@@ -4559,77 +4559,6 @@ CONTAINS
                               WD_RainoutEff = RainEff,                      &
                               RC            = RC )
 
-          ! Species for Hodzic et al. (2016) for GECKO DNN (jin)
-          ! Divide to three different categories
-          ! MTPA (NTSOA), Toluene (NASOA), SIVOCs (NSISOA)
-          CASE( 'NTSOA1', 'NTSOA2', 'NTSOA3', 'NTSOA4', 'NTSOA5', 'NTSOA6', &
-                'NASOA1', 'NASOA2', 'NASOA3', 'NASOA4', 'NASOA5', 'NASOA6' )
-
-             FullName = 'Lumped semivolatile aerosol products for GECKO DNN'
-
-             ! Halve the Kc (cloud condensate -> precip) rate
-             ! for the temperature range 237 K <= T < 258 K.
-             KcScale  = (/ 1.0_fp, 0.5_fp, 1.0_fp /)
-
-             ! Turn off rainout only when 237 K <= T < 258K.
-             ! NOTE: Rainout efficiency is 0.8 because these are SOA species.
-             RainEff  = (/ 0.8_fp, 0.0_fp, 0.8_fp /)
-
-             CALL Spc_Create( am_I_Root     = am_I_Root,                    &
-                              ThisSpc       = SpcData(N)%Info,              &
-                              ModelID       = N,                            &
-                              KppSpcId      = KppSpcId(N),                  &
-                              KppVarId      = KppVarId(N),                  &
-                              KppFixId      = KppFixId(N),                  &
-                              Name          = NameAllCaps,                  &
-                              FullName      = FullName,                     &
-                              Formula       = '',                           &
-                              MW_g          = 150.0_fp,                     &
-                              Is_Advected   = Is_Advected,                  &
-                              Is_Gas        = F,                            &
-                              Is_Drydep     = T,                            &
-                              Is_Wetdep     = T,                            &
-                              DD_DvzAerSnow = 0.03_fp,                      &
-                              DD_F0         = 0.0_fp,                       &
-                              DD_Hstar_old  = 0.0_fp,                       &
-                              WD_AerScavEff = 0.8_fp,                       &
-                              WD_KcScaleFac = KcScale,                      &
-                              WD_RainoutEff = RainEff,                      &
-                              RC            = RC )
-
-          CASE( 'NSISOA1', 'NSISOA2', 'NSISOA3', 'NSISOA4', 'NSISOA5', 'NSISOA6' )
-
-             FullName = 'Lumped semivolatile aerosol products for GECKO DNN'
-
-             ! Halve the Kc (cloud condensate -> precip) rate
-             ! for the temperature range 237 K <= T < 258 K.
-             KcScale  = (/ 1.0_fp, 0.5_fp, 1.0_fp /)
-
-             ! Turn off rainout only when 237 K <= T < 258K.
-             ! NOTE: Rainout efficiency is 0.8 because these are SOA species.
-             RainEff  = (/ 0.8_fp, 0.0_fp, 0.8_fp /)
-
-             CALL Spc_Create( am_I_Root     = am_I_Root,                    &
-                              ThisSpc       = SpcData(N)%Info,              &
-                              ModelID       = N,                            &
-                              KppSpcId      = KppSpcId(N),                  &
-                              KppVarId      = KppVarId(N),                  &
-                              KppFixId      = KppFixId(N),                  &
-                              Name          = NameAllCaps,                  &
-                              FullName      = FullName,                     &
-                              Formula       = '',                           &
-                              MW_g          = 250.0_fp,                     &
-                              Is_Advected   = Is_Advected,                  &
-                              Is_Gas        = F,                            &
-                              Is_Drydep     = T,                            &
-                              Is_Wetdep     = T,                            &
-                              DD_DvzAerSnow = 0.03_fp,                      &
-                              DD_F0         = 0.0_fp,                       &
-                              DD_Hstar_old  = 0.0_fp,                       &
-                              WD_AerScavEff = 0.8_fp,                       &
-                              WD_KcScaleFac = KcScale,                      &
-                              WD_RainoutEff = RainEff,                      &
-                              RC            = RC )
 
           ! Species for Hodzic et al. (2016). (dsj)
           ! Isoprene SOG
@@ -4714,47 +4643,6 @@ CONTAINS
                               WD_RetFactor  = 2.0e-2_fp,                    &
                               RC            = RC )
 
-          ! For GECKO DNN (jin)
-          CASE( 'NTSOG1', 'NTSOG2', 'NTSOG3', 'NTSOG4', 'NTSOG5', 'NTSOG6' )
-             FullName = 'Lumped semivolatile gas products of monoterpene oxidation for GECKO DNN'
-             ! Henry's law constants are different for each bin
-             SELECT CASE( TRIM( NameAllCaps ) )
-                CASE( 'NTSOG1' )
-                   !HStar = 7.9e+11_fp
-                   HStar = 1.00e+5_fp
-                CASE( 'NTSOG2' )
-                   HStar = 6.3e+10_fp
-                CASE( 'NTSOG3' )
-                   HStar = 3.2e+9_fp
-                CASE( 'NTSOG4' )
-                   HStar = 6.3e+8_fp
-                CASE( 'NTSOG5' )
-                   HStar = 3.2e+7_fp
-                CASE( 'NTSOG6' )
-                   HStar = 1.3e+7_fp
-             END SELECT
-
-             CALL Spc_Create( am_I_Root     = am_I_Root,                    &
-                              ThisSpc       = SpcData(N)%Info,              &
-                              ModelID       = N,                            &
-                              KppSpcId      = KppSpcId(N),                  &
-                              KppVarId      = KppVarId(N),                  &
-                              KppFixId      = KppFixId(N),                  &
-                              Name          = NameAllCaps,                  &
-                              FullName      = FullName,                     &
-                              Formula       = '',                           &
-                              MW_g          = 150.0_fp,                     &
-                              Is_Advected   = Is_Advected,                  &
-                              Is_Gas        = T,                            &
-                              Is_Drydep     = T,                            &
-                              Is_Wetdep     = T,                            &
-                              DD_F0         = 0.0_fp,                       &
-                              DD_Hstar_old  = HStar,                        &
-                              Henry_K0      = HStar,                        &
-                              Henry_CR      = 6039.0_f8,                    &
-                              WD_RetFactor  = 2.0e-2_fp,                    &
-                              RC            = RC )
-
           ! Species for Hodzic et al. (2016). (dsj)
           ! Aromatic SOG
           CASE( 'VASOG1', 'VASOG2', 'VASOG3', 'VASOG4', 'VASOG5', 'VASOG6' )
@@ -4796,47 +4684,6 @@ CONTAINS
                               WD_RetFactor  = 2.0e-2_fp,                    &
                               RC            = RC )
 
-          ! For GECKO DNN (jin)
-          CASE( 'NASOG1', 'NASOG2', 'NASOG3', 'NASOG4', 'NASOG5', 'NASOG6' )
-             FullName = 'Lumped semivolatile gas products of aromatics oxidation for GECKO DNN'
-             ! Henry's law constants are different for each bin
-             SELECT CASE( TRIM( NameAllCaps ) )
-                CASE( 'NASOG1' )
-                   HStar = 1.3e+7_fp
-                CASE( 'NASOG2' )
-                   HStar = 3.2e+5_fp
-                CASE( 'NASOG3' )
-                   HStar = 4.0e+5_fp
-                CASE( 'NASOG4' )
-                   HStar = 1.3e+5_fp
-                CASE( 'NASOG5' )
-                   HStar = 1.6e+5_fp
-                CASE( 'NASOG6' )
-                   HStar = 1.0e+5_fp
-             END SELECT 
-
-             CALL Spc_Create( am_I_Root     = am_I_Root,                    &
-                              ThisSpc       = SpcData(N)%Info,              &    
-                              ModelID       = N,                            &    
-                              KppSpcId      = KppSpcId(N),                  &    
-                              KppVarId      = KppVarId(N),                  &    
-                              KppFixId      = KppFixId(N),                  &    
-                              Name          = NameAllCaps,                  &    
-                              FullName      = FullName,                     &    
-                              Formula       = '',                           &    
-                              MW_g          = 150.0_fp,                     &    
-                              Is_Advected   = Is_Advected,                  &    
-                              Is_Gas        = T,                            &    
-                              Is_Drydep     = T,                            &    
-                              Is_Wetdep     = T,                            &    
-                              DD_F0         = 0.0_fp,                       &    
-                              DD_Hstar_old  = HStar,                        &    
-                              Henry_K0      = HStar,                        &    
-                              Henry_CR      = 6039.0_f8,                    &    
-                              WD_RetFactor  = 2.0e-2_fp,                    &    
-                              RC            = RC ) 
-
-
           ! Species for Hodzic et al. (2016). (dsj)
           ! SVOC/IVOC SOG
           CASE( 'VSISOG1', 'VSISOG2', 'VSISOG3', 'VSISOG4', 'VSISOG5', 'VSISOG6' )
@@ -4864,33 +4711,6 @@ CONTAINS
                               Henry_CR      = 6039.0_f8,                    &
                               WD_RetFactor  = 2.0e-2_fp,                    &
                               RC            = RC )
-
-          ! For GECKO DNN (jin)
-          CASE( 'NSISOG1', 'NSISOG2', 'NSISOG3', 'NSISOG4', 'NSISOG5', 'NSISOG6' )
-             FullName = 'Lumped semivolatile gas products of monoterpene oxidation for GECKO DNN'
-             ! Henry's law constants are the same for all bins
-             HStar = 1.0e+3_fp
-
-             CALL Spc_Create( am_I_Root     = am_I_Root,                    &    
-                              ThisSpc       = SpcData(N)%Info,              &    
-                              ModelID       = N,                            &    
-                              KppSpcId      = KppSpcId(N),                  &    
-                              KppVarId      = KppVarId(N),                  &    
-                              KppFixId      = KppFixId(N),                  &    
-                              Name          = NameAllCaps,                  &    
-                              FullName      = FullName,                     &    
-                              Formula       = '',                           &    
-                              MW_g          = 250.0_fp,                     &    
-                              Is_Advected   = Is_Advected,                  &    
-                              Is_Gas        = T,                            &    
-                              Is_Drydep     = T,                            &    
-                              Is_Wetdep     = T,                            &    
-                              DD_F0         = 0.0_fp,                       &    
-                              DD_Hstar_old  = HStar,                        &    
-                              Henry_K0      = HStar,                        &    
-                              Henry_CR      = 6039.0_f8,                    &    
-                              WD_RetFactor  = 2.0e-2_fp,                    &    
-                              RC            = RC ) 
 
           ! Species for Hodzic et al. (2016). (dsj)
           ! S/IVOC

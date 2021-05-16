@@ -984,14 +984,6 @@ endif
 # Save for backwards compatibility
 NCL                  := $(NC_LINK_CMD)
 
-###############################################################################
-###                                                                         ###
-###  Set linker commands for local and external libraries (incl. MKL, jin)  ###
-###                                                                         ###
-###############################################################################
-
-###MKL_LINK_CMD       := ${MKLROOT}/lib/libfftw2xf_double_intel.a -L${MKLROOT}/lib -mkl
-
 #----------------------------
 # For GEOS-Chem 
 #----------------------------
@@ -1013,7 +1005,6 @@ endif
 LINK                 :=$(LINK) -lIsoropia -lHistory -lHCOI -lHCOX -lHCO 
 LINK                 :=$(LINK) -lGeosUtil -lKpp -lHeaders -lNcUtils 
 LINK                 :=$(LINK) $(NC_LINK_CMD)
-###LINK                 :=$(LINK) $(MKL_LINK_CMD)
 
 #----------------------------
 # For the HEMCO standalone
@@ -1522,7 +1513,6 @@ export R8
 export SHELL
 export NCL
 export NC_LINK_CMD
-export MKL_LINK_CMD
 export HPC
 export PRECISION
 export RRTMG_NEEDED

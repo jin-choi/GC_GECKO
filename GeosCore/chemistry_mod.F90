@@ -593,6 +593,11 @@ CONTAINS
           ! Do carbonaceous aerosol chemistry
           !-----------------------------------
           IF ( LCARB ) THEN
+
+             ! Check units (jin)
+             print *, "Species unit before CHEMCARBON: ", &
+                      TRIM( State_Chm%Spc_Units )
+
              CALL ChemCarbon( am_I_Root, Input_Opt,  State_Met,              &
                               State_Chm, State_Diag, RC                     )
 

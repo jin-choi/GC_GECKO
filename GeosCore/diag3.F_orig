@@ -379,16 +379,7 @@
       INTEGER, SAVE            :: id_PAN,   id_HNO3,  id_EOH,   id_MGLY
       INTEGER, SAVE            :: id_BENZ,  id_TOLU,  id_XYLE
       INTEGER, SAVE            :: id_NAP,   id_POG1,  id_POG2
-
-      ! added for VBS + DNN 
-      INTEGER, SAVE            :: id_VISOA1,  id_VTSOA1,  id_VASOA1
-      INTEGER, SAVE            :: id_VSISOA1, id_NTSOA1,  id_NTSOG1
-
-      ! Add for the Hodzic VBS (dsj)
-      LOGICAL, SAVE            :: LVBS
-
-      ! Add for GECKO DNN (jin)
-      LOGICAL, SAVE            :: LDNN
+ 
 !
 !******************************************************************************
 !  DIAG3 begins here!
@@ -505,26 +496,12 @@
          id_POG1      = Ind_('POG1'    )
          id_POG2      = Ind_('POG2'    )
 
-         id_VISOA1     = Ind_('VISOA1'   )
-         id_VTSOA1     = Ind_('VTSOA1'   )
-         id_VASOA1     = Ind_('VASOA1'   )
-         id_VSISOA1    = Ind_('VSISOA1'  )
-         id_NTSOA1     = Ind_('NTSOA1'   )
-         id_NTSOG1     = Ind_('NTSOG1'   )
-
-         print *, 'jin debug', id_NTSOA1, 'and', id_NTSOG1
-
          ! NOTE: CH4 can be an advected species (in CH4 or UCX-based sims),
          ! or a non-advected species (tropchem, soa, soa-svpoa).  We only
          ! want to print out diagnostics if CH4 is an advected species,
          ! so make sure to use the 'A' flag in the call to Ind_().
          ! (bmy, 6/23/16)
          id_CH4       = Ind_('CH4', 'A')
-
-         ! Add for the Hodzic VBS (dsj)
-         LVBS                 = Input_Opt%LVBS
-         ! Add for GECKO DNN (jin)
-         LDNN                 = Input_Opt%LDNN
 
          ! Reset first-time flag
          FIRST = .FALSE.
@@ -1350,32 +1327,6 @@
                ! hotp 7/31/08 units
                UNIT = 'kg' 
 
-               IF ( LVBS ) THEN
-
-               ! SOAupdate: semivolpoa2: units diff for POA (hotp 3/4/09)
-               ! now correspond to JSV (hotp 5/24/10) (new mtp)
-               IF     ( N == 1 ) THEN
-                  NN = id_VISOA1
-                  UNIT = 'kgC'   ! jin
-               ELSEIF ( N == 2 ) THEN
-                  NN = id_VTSOA1
-                  UNIT = 'kgC'   ! jin
-               ELSEIF ( N == 3 ) THEN
-                  NN = id_VASOA1
-                  UNIT = 'kgC'   ! jin
-               ELSEIF ( N == 4 ) THEN
-                  NN = id_VSISOA1
-                  UNIT = 'kgC'
-               ELSEIF ( N == 5 ) THEN
-                  NN = id_NTSOA1
-                  UNIT = 'kgC'
-               ELSEIF ( N == 6 ) THEN
-                  NN = id_NTSOG1
-                  UNIT = 'kgC'
-               ENDIF
-
-               ELSE
-
                ! SOAupdate: semivolpoa2: units diff for POA (hotp 3/4/09)
                ! now correspond to JSV (hotp 5/24/10) (new mtp)
                IF     ( N == 1 ) THEN
@@ -1396,8 +1347,6 @@
                ELSEIF ( N == 6 ) THEN
                   NN = id_OPOG1
                   UNIT = 'kgC'
-               ENDIF
-
                ENDIF
 
                ! Check to make sure the tracer exists (hotp 8/23/09)
